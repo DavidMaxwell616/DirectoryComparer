@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<DirectoryComparerPreferences>
+  <Preferences>
+    <Columns>0,0,0,0,0,0</Columns>
+    <DirectoryPairs>
+      <DirectoryPair>C:\Users\maxxd\Documents,F:\Users\maxxd_000\Documents</DirectoryPair>
+      <DirectoryPair>C:\Users\maxxd\Music,F:\Users\maxxd_000\Music</DirectoryPair>
+    </DirectoryPairs>
+  </Preferences>
+</DirectoryComparerPreferences>

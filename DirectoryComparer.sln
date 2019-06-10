@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28922.388
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectoryComparer", "DirectoryComparer.csproj", "{0CBD506E-25FB-432F-9A29-49AD89C63155}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0CBD506E-25FB-432F-9A29-49AD89C63155}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CBD506E-25FB-432F-9A29-49AD89C63155}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CBD506E-25FB-432F-9A29-49AD89C63155}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CBD506E-25FB-432F-9A29-49AD89C63155}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AF95BE4B-5A8C-4B4E-919C-3E5F6D338D25}
+	EndGlobalSection
+EndGlobal
