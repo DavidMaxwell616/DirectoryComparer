@@ -6,12 +6,22 @@ using System.Threading.Tasks;
 
 namespace DirectoryComparer
 {
+    public enum ComparisonStatus
+    {
+        FileExistsOnSource,
+        FileExistsOnTarget,
+        FileMatches,
+        FileDoesNotMatch
+    }
+
     class ComparisonResults
     {
         public int ComparisonSet { get; set; }
-        public bool FileExistsOnTarget { get; set; }
-        public bool FileExistsOnSource { get; set; }
-       public bool FileMatches { get; set; }
-       public bool FileDoesNotMatch { get; set; }
+
+        public string FilePath { get; set; }
+
+         public ComparisonStatus CompareStatus {get; set;}
+
     }
+
 }

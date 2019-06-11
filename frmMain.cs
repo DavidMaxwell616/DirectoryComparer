@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -21,39 +20,89 @@ namespace DirectoryComparer
             InitializeComponent();
             prefs = GetPreferences();
             RefreshPrefs();
+            btnSync.Enabled = false;
         }
 
         #region CompareTab
         private void btnCompare_Click(object sender, EventArgs e)
         {
-
-            //var count = Directory.EnumerateFiles(textBox1.Text, "*.*", SearchOption.AllDirectories).Count();
-            List<List<FileInfo>> sourceList = new List<List<FileInfo>>();
-            List<List<FileInfo>> targetList = new List<List<FileInfo>>();
-
+            List<ComparisonResults> results = new List<ComparisonResults>();
+            Cursor.Current = Cursors.WaitCursor;
             foreach (var path in prefs.DirectoryPairs)
             {
                 if (path.Enabled)
                 { 
                 sourceDirectory = path.SourcePath;
                 targetDirectory = path.TargetPath;
-                List<FileInfo> srclist = RecursiveFolderScan(sourceDirectory);
-                sourceList.Add(srclist);
-                List<FileInfo> targlist = RecursiveFolderScan(targetDirectory);
-                targetList.Add(targlist);
+                List<FileInfo> sourceList = RecursiveFolderScan(sourceDirectory);
+                List<FileInfo> targetList = RecursiveFolderScan(targetDirectory);
+                results = compareLists(sourceList, targetList);
                 }
             }
-            List<ComparisonResults> results = compareLists(sourceList, targetList);
+            toolStripStatusLabel1.Text = string.Empty;
+            resultsGrid.DataSource = null;
+            resultsGrid.DataSource = results;
+            resultsGrid.Update();
+            resultsGrid.Refresh();
+            resultsGrid.Columns[1].Width = 300;
+            Cursor.Current = Cursors.Default;
+            if (resultsGrid.RowCount>0)
+                btnSync.Enabled = true;
         }
 
-        private List<ComparisonResults> compareLists(List<List<FileInfo>> sourceList, List<List<FileInfo>> targetList)
+        private List<ComparisonResults> compareLists(List<FileInfo> sourceList, List<FileInfo> targetList)
         {
             var results = new List<ComparisonResults>();
-            foreach (var item in sourceList)
-            {
-           //      var matches = targetList.Where(x => Path.Combine(x.FileEndPath,x.FileName)== Path.Combine(item.FileEndPath, item.FileName));
-                    // this code is executed on each item in firstList but not in secondList
-            }
+
+            var matches = from x in sourceList
+                          join y in targetList
+                         on new { x.FileEndPath, x.ModifiedDate } 
+                         equals new { y.FileEndPath, y.ModifiedDate }
+                         select (new ComparisonResults
+                         {
+                             FilePath = x.FileEndPath,
+                             CompareStatus = ComparisonStatus.FileMatches
+                         });
+
+            results.AddRange(matches);
+
+            var existsOnSource = (from x in sourceList
+                                  join y in targetList on x.FileEndPath equals y.FileEndPath into gj
+                                  from outliers in gj.DefaultIfEmpty()
+                                  where outliers == null
+                                  select (new ComparisonResults
+                                  {
+                                      FilePath = x.FileEndPath,
+                                      CompareStatus = ComparisonStatus.FileExistsOnSource
+                                  })).ToList();
+
+            results.AddRange(existsOnSource);
+
+
+            var existsOnTarget = (from x in targetList
+                                  join y in sourceList on x.FileEndPath equals y.FileEndPath into gj
+                                  from outliers in gj.DefaultIfEmpty()
+                                  where outliers == null
+                                  select (new ComparisonResults
+                                  {
+                                      FilePath = x.FileEndPath,
+                                      CompareStatus = ComparisonStatus.FileExistsOnTarget
+                                  })).ToList();
+
+            results.AddRange(existsOnTarget);
+
+            var nonMatches = from x in sourceList
+                          join y in targetList
+                         on x.FileEndPath equals y.FileEndPath
+                         where x.ModifiedDate> y.ModifiedDate
+                          select (new ComparisonResults
+                          {
+                              FilePath = x.FileEndPath,
+                              CompareStatus = ComparisonStatus.FileDoesNotMatch
+                          });
+
+            results.AddRange(nonMatches);
+
             return results;
         }
 
@@ -74,7 +123,7 @@ namespace DirectoryComparer
                     CreatedDate = entry.CreationTimeUtc,
                     ModifiedDate = entry.LastWriteTimeUtc,
                     FilePath = Path.GetDirectoryName(entry.FullName),
-                    FileEndPath = Path.GetDirectoryName(entry.FullName).Replace(sourceDirectory, ""),
+                    FileEndPath = Path.GetFullPath(entry.FullName).Replace(sourceDirectory, "").Replace(targetDirectory, ""),
                     HashCode = entry.GetHashCode(),
                     FileName = Path.GetFileName(entry.FullName),
                     isSourceFile = path.Contains(sourceDirectory)
@@ -287,8 +336,12 @@ namespace DirectoryComparer
             RefreshPrefs();
         }
 
+
         #endregion
 
- 
+        private void BtnSync_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
