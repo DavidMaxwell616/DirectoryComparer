@@ -5,16 +5,26 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Linq;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace DirectoryComparer
 {
     public partial class frmMain : Form
     {
         private Preferences prefs { get; set; }
+        private List<ComparisonResults> results { get; set; }
 
         private string sourceDirectory { get; set; }
         private string targetDirectory { get; set; }
   
+        private int fileMatches { get; set; }
+
+        private int onSource { get; set; }
+
+        private int onTarget { get; set; }
+
+        private int unMatched { get; set; }
+        private int totalFiles { get; set; }
         public frmMain()
         {
             InitializeComponent();
@@ -26,8 +36,9 @@ namespace DirectoryComparer
         #region CompareTab
         private void btnCompare_Click(object sender, EventArgs e)
         {
-            List<ComparisonResults> results = new List<ComparisonResults>();
-            Cursor.Current = Cursors.WaitCursor;
+            results = new List<ComparisonResults>();
+
+            Cursor = Cursors.WaitCursor;
             foreach (var path in prefs.DirectoryPairs)
             {
                 if (path.Enabled)
@@ -36,7 +47,7 @@ namespace DirectoryComparer
                 targetDirectory = path.TargetPath;
                 List<FileInfo> sourceList = RecursiveFolderScan(sourceDirectory);
                 List<FileInfo> targetList = RecursiveFolderScan(targetDirectory);
-                results = compareLists(sourceList, targetList);
+                results = compareLists(sourceList, targetList,path.ComparisonSet);
                 }
             }
             toolStripStatusLabel1.Text = string.Empty;
@@ -45,26 +56,29 @@ namespace DirectoryComparer
             resultsGrid.Update();
             resultsGrid.Refresh();
             resultsGrid.Columns[1].Width = 300;
-            Cursor.Current = Cursors.Default;
+            Cursor = Cursors.Default;
+            updateResults();
             if (resultsGrid.RowCount>0)
                 btnSync.Enabled = true;
         }
 
-        private List<ComparisonResults> compareLists(List<FileInfo> sourceList, List<FileInfo> targetList)
+        private List<ComparisonResults> compareLists(List<FileInfo> sourceList, List<FileInfo> targetList, int set)
         {
             var results = new List<ComparisonResults>();
 
-            var matches = from x in sourceList
+            var matches = (from x in sourceList
                           join y in targetList
                          on new { x.FileEndPath, x.ModifiedDate } 
                          equals new { y.FileEndPath, y.ModifiedDate }
                          select (new ComparisonResults
                          {
+                             ComparisonSet = set,
                              FilePath = x.FileEndPath,
                              CompareStatus = ComparisonStatus.FileMatches
-                         });
+                         })).ToList();
 
             results.AddRange(matches);
+            fileMatches = matches.Count();
 
             var existsOnSource = (from x in sourceList
                                   join y in targetList on x.FileEndPath equals y.FileEndPath into gj
@@ -72,12 +86,13 @@ namespace DirectoryComparer
                                   where outliers == null
                                   select (new ComparisonResults
                                   {
+                                      ComparisonSet = set,
                                       FilePath = x.FileEndPath,
                                       CompareStatus = ComparisonStatus.FileExistsOnSource
                                   })).ToList();
 
             results.AddRange(existsOnSource);
-
+            onSource = existsOnSource.Count();
 
             var existsOnTarget = (from x in targetList
                                   join y in sourceList on x.FileEndPath equals y.FileEndPath into gj
@@ -85,11 +100,13 @@ namespace DirectoryComparer
                                   where outliers == null
                                   select (new ComparisonResults
                                   {
+                                      ComparisonSet = set,
                                       FilePath = x.FileEndPath,
                                       CompareStatus = ComparisonStatus.FileExistsOnTarget
                                   })).ToList();
 
             results.AddRange(existsOnTarget);
+            onTarget = existsOnTarget.Count();
 
             var nonMatches = from x in sourceList
                           join y in targetList
@@ -97,12 +114,15 @@ namespace DirectoryComparer
                          where x.ModifiedDate> y.ModifiedDate
                           select (new ComparisonResults
                           {
+                              ComparisonSet = set,
                               FilePath = x.FileEndPath,
                               CompareStatus = ComparisonStatus.FileDoesNotMatch
                           });
 
             results.AddRange(nonMatches);
+            unMatched = nonMatches.Count();
 
+            totalFiles = results.Count();
             return results;
         }
 
@@ -130,13 +150,56 @@ namespace DirectoryComparer
             }); 
                toolStripStatusLabel1.Text = entry.FullName;
                 Application.DoEvents();
+                Cursor = Cursors.WaitCursor;
             }
             return info;
         }
-        #endregion
 
-        #region PreferencesTab
-        private void RefreshPrefs()
+        private void BtnSync_Click(object sender, EventArgs e)
+        {
+            foreach (var path in prefs.DirectoryPairs)
+            {
+                string srcPath = string.Empty;
+                string destPath = string.Empty;
+
+                if (path.Enabled)
+                {
+                    foreach (var item in results)
+                    {
+                        if (item.ComparisonSet== path.ComparisonSet)
+                        {
+                            switch (item.CompareStatus)
+                            {
+                                case ComparisonStatus.FileExistsOnSource:
+                                    srcPath = String.Concat(path.SourcePath, item.FilePath);
+                                    destPath = String.Concat(path.TargetPath, item.FilePath);
+                                    File.Copy(srcPath, destPath);
+                                    item.CompareStatus = ComparisonStatus.FileMatches;
+                                    break;
+                                case ComparisonStatus.FileExistsOnTarget:
+                                    destPath = string.Concat(path.TargetPath, item.FilePath);
+                                    File.Delete(destPath);
+                                    results.Remove(item);
+                                    break;
+                                case ComparisonStatus.FileDoesNotMatch:
+                                    srcPath = String.Concat(path.SourcePath, item.FilePath);
+                                    destPath = String.Concat(path.TargetPath, item.FilePath);
+                                    File.Copy(srcPath, destPath, true);
+                                    item.CompareStatus = ComparisonStatus.FileMatches;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+                #endregion
+
+                #region PreferencesTab
+                private void RefreshPrefs()
         {
             prefsGrid.DataSource = null;
             prefsGrid.DataSource = prefs.DirectoryPairs;
@@ -273,7 +336,7 @@ namespace DirectoryComparer
                 XmlTextReader reader = new XmlTextReader(currentPath);
                 prefs = new Preferences();
                 prefs.DirectoryPairs = new List<DirectoryPair>();
-
+                int i = 0;
                 while (reader.Read())
                 {
                     if (reader.NodeType == XmlNodeType.Element)
@@ -283,9 +346,11 @@ namespace DirectoryComparer
                             string dirPair = reader.ReadElementString("DirectoryPair");
                             DirectoryPair pair = new DirectoryPair();
                             pair.Enabled = Convert.ToBoolean(dirPair.Split(',')[0]);
+                            pair.ComparisonSet = i;
                             pair.SourcePath = dirPair.Split(',')[1];
                             pair.TargetPath = dirPair.Split(',')[2];
                             prefs.DirectoryPairs.Add(pair);
+                            i++;
                         }
                     }
 
@@ -339,9 +404,26 @@ namespace DirectoryComparer
 
         #endregion
 
-        private void BtnSync_Click(object sender, EventArgs e)
+        #region ResultsTab
+        private void updateResults()
         {
+            txtMatches.Text = String.Format("{0:n0}", fileMatches);
+            txtNonMatches.Text = String.Format("{0:n0}", unMatched);
+            txtSource.Text = String.Format("{0:n0}", onSource);
+            txtTarget.Text = String.Format("{0:n0}", onTarget);
+            txtTotal.Text = String.Format("{0:n0}", totalFiles);
 
-        }
+            chart1.Titles.Add("Comparison Results");
+
+            string[] seriesArray = { "Matches", "Non-Matches", "File Exists On Source Only", "File Exists On Target Only" };
+            int[] pointsArray = { fileMatches, unMatched, onSource, onTarget };
+
+            for (int i = 0; i < seriesArray.Length; i++)
+            {
+                chart1.Series["s1"].Points.AddXY(seriesArray[i], pointsArray[i]);
+            }
+
     }
+    #endregion
+}
 }

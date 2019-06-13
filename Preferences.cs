@@ -12,7 +12,8 @@ namespace DirectoryComparer
     }
     public class DirectoryPair
     {
-        public bool Enabled { get; set; }
+         public bool Enabled { get; set; }
+        public int ComparisonSet { get; set; }
         public string SourcePath { get; set; }
         public string TargetPath { get; set; }
     }
