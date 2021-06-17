@@ -33,6 +33,7 @@
             System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.btnSync = new System.Windows.Forms.Button();
             this.btnCompare = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.resultsGrid = new System.Windows.Forms.DataGridView();
@@ -40,30 +41,30 @@
             this.btnRemove = new System.Windows.Forms.Button();
             this.btnAdd = new System.Windows.Forms.Button();
             this.prefsGrid = new System.Windows.Forms.DataGridView();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.txtTotal = new System.Windows.Forms.TextBox();
+            this.txtNonMatches = new System.Windows.Forms.TextBox();
+            this.txtTarget = new System.Windows.Forms.TextBox();
+            this.txtSource = new System.Windows.Forms.TextBox();
+            this.txtMatches = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.btnSync = new System.Windows.Forms.Button();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
-            this.txtMatches = new System.Windows.Forms.TextBox();
-            this.txtSource = new System.Windows.Forms.TextBox();
-            this.txtTarget = new System.Windows.Forms.TextBox();
-            this.txtNonMatches = new System.Windows.Forms.TextBox();
-            this.txtTotal = new System.Windows.Forms.TextBox();
+            this.btnEdit = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.resultsGrid)).BeginInit();
             this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.prefsGrid)).BeginInit();
-            this.statusStrip1.SuspendLayout();
             this.tabPage3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
+            this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -90,6 +91,16 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Compare";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // btnSync
+            // 
+            this.btnSync.Location = new System.Drawing.Point(667, 9);
+            this.btnSync.Name = "btnSync";
+            this.btnSync.Size = new System.Drawing.Size(75, 23);
+            this.btnSync.TabIndex = 15;
+            this.btnSync.Text = "Sync";
+            this.btnSync.UseVisualStyleBackColor = true;
+            this.btnSync.Click += new System.EventHandler(this.BtnSync_Click);
             // 
             // btnCompare
             // 
@@ -120,6 +131,7 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.btnEdit);
             this.tabPage2.Controls.Add(this.btnRemove);
             this.tabPage2.Controls.Add(this.btnAdd);
             this.tabPage2.Controls.Add(this.prefsGrid);
@@ -157,31 +169,6 @@
             this.prefsGrid.Size = new System.Drawing.Size(725, 362);
             this.prefsGrid.TabIndex = 0;
             // 
-            // statusStrip1
-            // 
-            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel1});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 454);
-            this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(800, 22);
-            this.statusStrip1.TabIndex = 9;
-            this.statusStrip1.Text = "statusStrip1";
-            // 
-            // toolStripStatusLabel1
-            // 
-            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(0, 17);
-            // 
-            // btnSync
-            // 
-            this.btnSync.Location = new System.Drawing.Point(667, 9);
-            this.btnSync.Name = "btnSync";
-            this.btnSync.Size = new System.Drawing.Size(75, 23);
-            this.btnSync.TabIndex = 15;
-            this.btnSync.Text = "Sync";
-            this.btnSync.UseVisualStyleBackColor = true;
-            this.btnSync.Click += new System.EventHandler(this.BtnSync_Click);
-            // 
             // tabPage3
             // 
             this.tabPage3.Controls.Add(this.txtTotal);
@@ -204,6 +191,96 @@
             this.tabPage3.Text = "Results";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
+            // txtTotal
+            // 
+            this.txtTotal.Location = new System.Drawing.Point(167, 271);
+            this.txtTotal.Name = "txtTotal";
+            this.txtTotal.Size = new System.Drawing.Size(100, 20);
+            this.txtTotal.TabIndex = 11;
+            // 
+            // txtNonMatches
+            // 
+            this.txtNonMatches.Location = new System.Drawing.Point(167, 242);
+            this.txtNonMatches.Name = "txtNonMatches";
+            this.txtNonMatches.Size = new System.Drawing.Size(100, 20);
+            this.txtNonMatches.TabIndex = 10;
+            // 
+            // txtTarget
+            // 
+            this.txtTarget.Location = new System.Drawing.Point(167, 209);
+            this.txtTarget.Name = "txtTarget";
+            this.txtTarget.Size = new System.Drawing.Size(100, 20);
+            this.txtTarget.TabIndex = 9;
+            // 
+            // txtSource
+            // 
+            this.txtSource.Location = new System.Drawing.Point(167, 177);
+            this.txtSource.Name = "txtSource";
+            this.txtSource.Size = new System.Drawing.Size(100, 20);
+            this.txtSource.TabIndex = 8;
+            // 
+            // txtMatches
+            // 
+            this.txtMatches.Location = new System.Drawing.Point(167, 144);
+            this.txtMatches.Name = "txtMatches";
+            this.txtMatches.Size = new System.Drawing.Size(100, 20);
+            this.txtMatches.TabIndex = 7;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(74, 274);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(55, 13);
+            this.label7.TabIndex = 6;
+            this.label7.Text = "Total Files";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(74, 245);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(71, 13);
+            this.label6.TabIndex = 5;
+            this.label6.Text = "Non-Matches";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(74, 212);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(85, 13);
+            this.label5.TabIndex = 4;
+            this.label5.Text = "Exists On Target";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(74, 180);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(88, 13);
+            this.label4.TabIndex = 3;
+            this.label4.Text = "Exists On Source";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(74, 147);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(67, 13);
+            this.label2.TabIndex = 2;
+            this.label2.Text = "File Matches";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(116, 17);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(509, 39);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "Directory Comparison Results";
+            // 
             // chart1
             // 
             chartArea1.Name = "ChartArea1";
@@ -222,95 +299,30 @@
             this.chart1.TabIndex = 0;
             this.chart1.Text = "chart1";
             // 
-            // label1
+            // statusStrip1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(116, 17);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(509, 39);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "Directory Comparison Results";
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripStatusLabel1});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 454);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(800, 22);
+            this.statusStrip1.TabIndex = 9;
+            this.statusStrip1.Text = "statusStrip1";
             // 
-            // label2
+            // toolStripStatusLabel1
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(74, 147);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(67, 13);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "File Matches";
+            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(0, 17);
             // 
-            // label4
+            // btnEdit
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(74, 180);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(88, 13);
-            this.label4.TabIndex = 3;
-            this.label4.Text = "Exists On Source";
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(74, 212);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(85, 13);
-            this.label5.TabIndex = 4;
-            this.label5.Text = "Exists On Target";
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(74, 245);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(71, 13);
-            this.label6.TabIndex = 5;
-            this.label6.Text = "Non-Matches";
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(74, 274);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(55, 13);
-            this.label7.TabIndex = 6;
-            this.label7.Text = "Total Files";
-            // 
-            // txtMatches
-            // 
-            this.txtMatches.Location = new System.Drawing.Point(167, 144);
-            this.txtMatches.Name = "txtMatches";
-            this.txtMatches.Size = new System.Drawing.Size(100, 20);
-            this.txtMatches.TabIndex = 7;
-            // 
-            // txtSource
-            // 
-            this.txtSource.Location = new System.Drawing.Point(167, 177);
-            this.txtSource.Name = "txtSource";
-            this.txtSource.Size = new System.Drawing.Size(100, 20);
-            this.txtSource.TabIndex = 8;
-            // 
-            // txtTarget
-            // 
-            this.txtTarget.Location = new System.Drawing.Point(167, 209);
-            this.txtTarget.Name = "txtTarget";
-            this.txtTarget.Size = new System.Drawing.Size(100, 20);
-            this.txtTarget.TabIndex = 9;
-            // 
-            // txtNonMatches
-            // 
-            this.txtNonMatches.Location = new System.Drawing.Point(167, 242);
-            this.txtNonMatches.Name = "txtNonMatches";
-            this.txtNonMatches.Size = new System.Drawing.Size(100, 20);
-            this.txtNonMatches.TabIndex = 10;
-            // 
-            // txtTotal
-            // 
-            this.txtTotal.Location = new System.Drawing.Point(167, 271);
-            this.txtTotal.Name = "txtTotal";
-            this.txtTotal.Size = new System.Drawing.Size(100, 20);
-            this.txtTotal.TabIndex = 11;
+            this.btnEdit.Location = new System.Drawing.Point(508, 387);
+            this.btnEdit.Name = "btnEdit";
+            this.btnEdit.Size = new System.Drawing.Size(75, 23);
+            this.btnEdit.TabIndex = 3;
+            this.btnEdit.Text = "Edit";
+            this.btnEdit.UseVisualStyleBackColor = true;
+            this.btnEdit.Click += new System.EventHandler(this.btnEdit_Click_1);
             // 
             // frmMain
             // 
@@ -327,11 +339,11 @@
             ((System.ComponentModel.ISupportInitialize)(this.resultsGrid)).EndInit();
             this.tabPage2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.prefsGrid)).EndInit();
-            this.statusStrip1.ResumeLayout(false);
-            this.statusStrip1.PerformLayout();
             this.tabPage3.ResumeLayout(false);
             this.tabPage3.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).EndInit();
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -364,6 +376,7 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
+        private System.Windows.Forms.Button btnEdit;
     }
 }
 

@@ -11,6 +11,7 @@ namespace DirectoryComparer
 {
     public partial class frmMain : Form
     {
+        private XmlDocument xmlDoc { get; set; }
         private Preferences prefs { get; set; }
         private List<ComparisonResults> results { get; set; }
 
@@ -37,19 +38,38 @@ namespace DirectoryComparer
         private void btnCompare_Click(object sender, EventArgs e)
         {
             results = new List<ComparisonResults>();
+            xmlDoc = new XmlDocument();
+            XmlNode rootNode = xmlDoc.CreateElement("files");
+            xmlDoc.AppendChild(rootNode);
+
+
+            xmlDoc.Save("test-doc.xml");
 
             Cursor = Cursors.WaitCursor;
             foreach (var path in prefs.DirectoryPairs)
             {
+
                 if (path.Enabled)
-                { 
+                {
                 sourceDirectory = path.SourcePath;
                 targetDirectory = path.TargetPath;
-                List<FileInfo> sourceList = RecursiveFolderScan(sourceDirectory);
-                List<FileInfo> targetList = RecursiveFolderScan(targetDirectory);
+                if (!Directory.Exists(sourceDirectory))
+                {
+                    MessageBox.Show(string.Format("Directory {0} does not exist!", sourceDirectory),"Source Directory Does Not Exist",MessageBoxButtons.OK,MessageBoxIcon.Exclamation);
+                    return;
+                }
+                if (!Directory.Exists(targetDirectory))
+                {
+                    MessageBox.Show(string.Format("Directory {0} does not exist!", targetDirectory), "Target Directory Does Not Exist", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    return;
+                }
+                List<FileInfo> sourceList = RecursiveFolderScan(sourceDirectory,xmlDoc);
+                List<FileInfo> targetList = RecursiveFolderScan(targetDirectory, xmlDoc);
                 results = compareLists(sourceList, targetList,path.ComparisonSet);
                 }
             }
+            var Timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+            xmlDoc.Save(String.Format("Files {0}.xml",Timestamp.ToString()));
             toolStripStatusLabel1.Text = string.Empty;
             resultsGrid.DataSource = null;
             resultsGrid.DataSource = results;
@@ -126,8 +146,9 @@ namespace DirectoryComparer
             return results;
         }
 
-        private List<FileInfo> RecursiveFolderScan(string path)
+        private List<FileInfo> RecursiveFolderScan(string path, XmlDocument xmlDoc)
         {
+            var root = xmlDoc.ChildNodes[0];
             var info = new List<FileInfo>();
             var dirInfo = new DirectoryInfo(path);
             foreach (var entry in dirInfo.GetFileSystemInfos())
@@ -135,9 +156,9 @@ namespace DirectoryComparer
                 bool isDir = (entry.Attributes & FileAttributes.Directory) != 0;
                 if (isDir)
                 {
-                    info.AddRange(RecursiveFolderScan(entry.FullName));
+                    info.AddRange(RecursiveFolderScan(entry.FullName,xmlDoc));
                 }
-                info.Add(new FileInfo()
+                var file = new FileInfo()
                 {
                     IsDirectory = isDir,
                     CreatedDate = entry.CreationTimeUtc,
@@ -147,8 +168,37 @@ namespace DirectoryComparer
                     HashCode = entry.GetHashCode(),
                     FileName = Path.GetFileName(entry.FullName),
                     isSourceFile = path.Contains(sourceDirectory)
-            }); 
-               toolStripStatusLabel1.Text = entry.FullName;
+                };
+                XmlNode fileNode = xmlDoc.CreateElement("file");
+                XmlAttribute attribute = xmlDoc.CreateAttribute("isDirectory");
+                attribute.Value = file.IsDirectory.ToString();
+                fileNode.Attributes.Append(attribute);
+                attribute = xmlDoc.CreateAttribute("CreatedDate");
+                attribute.Value = entry.CreationTimeUtc.ToString();
+                fileNode.Attributes.Append(attribute);
+                attribute = xmlDoc.CreateAttribute("ModifiedDate");
+                attribute.Value = entry.LastWriteTimeUtc.ToString();
+                fileNode.Attributes.Append(attribute);
+                attribute = xmlDoc.CreateAttribute("FilePath");
+                attribute.Value = Path.GetDirectoryName(entry.FullName).ToString();
+                fileNode.Attributes.Append(attribute);
+                attribute = xmlDoc.CreateAttribute("FileEndPath");
+                attribute.Value = Path.GetFullPath(entry.FullName).Replace(sourceDirectory, "").Replace(targetDirectory, "").ToString();
+                fileNode.Attributes.Append(attribute);
+                attribute = xmlDoc.CreateAttribute("HashCode");
+                attribute.Value = entry.GetHashCode().ToString();
+                fileNode.Attributes.Append(attribute);
+                attribute = xmlDoc.CreateAttribute("FileName");
+                attribute.Value = Path.GetFileName(entry.FullName).ToString();
+                fileNode.Attributes.Append(attribute);
+                attribute = xmlDoc.CreateAttribute("isSourceFile");
+                attribute.Value = path.Contains(sourceDirectory).ToString();
+                fileNode.Attributes.Append(attribute);
+                root.AppendChild(fileNode);
+
+                info.Add(file);
+
+                toolStripStatusLabel1.Text = entry.FullName;
                 Application.DoEvents();
                 Cursor = Cursors.WaitCursor;
             }
@@ -168,27 +218,60 @@ namespace DirectoryComparer
                     {
                         if (item.ComparisonSet== path.ComparisonSet)
                         {
+                            try
+                            {
                             switch (item.CompareStatus)
                             {
                                 case ComparisonStatus.FileExistsOnSource:
                                     srcPath = String.Concat(path.SourcePath, item.FilePath);
                                     destPath = String.Concat(path.TargetPath, item.FilePath);
-                                    File.Copy(srcPath, destPath);
+                                        FileAttributes attr = File.GetAttributes(srcPath);
+                                        if (!attr.HasFlag(FileAttributes.Directory))
+                                        {
+                                            String dirPath = Path.GetDirectoryName(destPath);
+
+                                            if (!Directory.Exists(dirPath))
+                                                Directory.CreateDirectory(destPath);
+                                            if (!File.Exists(destPath))
+                                                File.Copy(srcPath, destPath);
+                                        }
+                                        else
+                                        {
+                                            if (!Directory.Exists(destPath))
+                                                Directory.CreateDirectory(destPath);
+                                        }
+                                        toolStripStatusLabel1.Text = "Exists on source: " + srcPath;
+                                    Application.DoEvents();
                                     item.CompareStatus = ComparisonStatus.FileMatches;
                                     break;
                                 case ComparisonStatus.FileExistsOnTarget:
                                     destPath = string.Concat(path.TargetPath, item.FilePath);
-                                    File.Delete(destPath);
-                                    results.Remove(item);
-                                    break;
+                                        //      File.Delete(destPath);
+                                        //      results.Remove(item);
+                                        srcPath = String.Concat(path.SourcePath, item.FilePath);
+                                        Directory.CreateDirectory(Path.GetDirectoryName(srcPath));
+                                        if (!Directory.Exists(srcPath))
+                                            File.Copy(destPath, srcPath);
+                                        toolStripStatusLabel1.Text = "Exists on Target: " + destPath;
+                                        Application.DoEvents();
+                                        item.CompareStatus = ComparisonStatus.FileMatches;
+                                        break;
                                 case ComparisonStatus.FileDoesNotMatch:
                                     srcPath = String.Concat(path.SourcePath, item.FilePath);
                                     destPath = String.Concat(path.TargetPath, item.FilePath);
                                     File.Copy(srcPath, destPath, true);
                                     item.CompareStatus = ComparisonStatus.FileMatches;
+                                    toolStripStatusLabel1.Text = "Mismatch: " + srcPath;
+                                    Application.DoEvents();
                                     break;
-                                default:
+                            default:
                                     break;
+                            }
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new Exception(ex.Message);
+                                
                             }
                         }
                     }
@@ -364,6 +447,12 @@ namespace DirectoryComparer
                 throw ex;
             }
         }
+        private void btnEdit_Click_1(object sender, EventArgs e)
+        {
+            string currentPath = Directory.GetCurrentDirectory() + @"\preferences.xml";
+            System.Diagnostics.Process.Start("notepad.exe", currentPath);
+
+        }
         private void btnAdd_Click(object sender, EventArgs e)
         {
             string newSourcePath = string.Empty;
@@ -424,6 +513,8 @@ namespace DirectoryComparer
             }
 
     }
-    #endregion
-}
+        #endregion
+
+
+    }
 }
